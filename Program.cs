@@ -16,6 +16,8 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+string? AlunoApi = builder.Configuration.GetConnectionString("AlunoApi");
+
 string? strCon = builder.Configuration.GetConnectionString("MinhaConexao");
 builder.Services.AddDbContext<DbContexto>(options => options.UseSqlServer(strCon));
 builder.Services.AddControllers();

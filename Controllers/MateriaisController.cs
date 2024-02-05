@@ -51,24 +51,44 @@ namespace api_desafio21dias.Controllers
         // POST: /materiais
         [HttpPost]
         [Route("/materiais")]
-        public async Task<IActionResult> Create([Bind("Id,Nome,Matricula")] Material material)
+        public async Task<IActionResult> Create(Material material)
         {
             if (ModelState.IsValid)
             {
+                using (var http = new HttpClient())
+                {
+                    using (var response = await http.GetAsync($"http://localhost:5259/alunos/{material.AlunoId}"))
+                    {
+                        if (response.IsSuccessStatusCode)
+                        {
+                            string responseData = await response.Content.ReadAsStringAsync();
+                            Console.WriteLine(responseData);
+                        }
+                        else 
+                        {
+                            return StatusCode(400, new { Mensagem = "O usuário passado não é válido ou não está cadastrado." });
+                        }
+                    }
+                }
+
                 _context.Add(material);
                 await _context.SaveChangesAsync();
                 return StatusCode(201, material);
             }
-            return StatusCode(201, material);
+            return StatusCode(400, new { Mensagem = "O material passado é inválido." });
         }
 
         // PUT: materiais/5
         [HttpPut]
         [Route("/materiais/{id}")]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Nome,Matricula")] Material material)
+        public async Task<IActionResult> Edit(int id, Material material)
         {
             if (ModelState.IsValid)
             {
+                if (! await AlunoServico.ValidarUsuario(material.AlunoId))
+                {
+                    return StatusCode(400, new { Mensagem = "O Aluno passado não é válido ou não está cadastrado." });
+                }
                 try
                 {
                     material.Id = id;
